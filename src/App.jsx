@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import CheckIn from './components/CheckIn';
 import Dashboard from './components/Dashboard';
 import Members from './components/Members';
-import History from './components/History';
 import logo from './assets/logo.png';
 
 function Nav() {
@@ -30,11 +29,6 @@ function Nav() {
               Members
             </Link>
           </li>
-          <li>
-            <Link to="/history" className={location.pathname === '/history' ? 'active' : ''}>
-              History
-            </Link>
-          </li>
         </ul>
       </div>
     </nav>
@@ -49,7 +43,6 @@ function App() {
         <Route path="/" element={<CheckIn />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/members" element={<Members />} />
-        <Route path="/history" element={<History />} />
       </Routes>
     </Router>
   );

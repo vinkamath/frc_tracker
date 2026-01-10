@@ -9,6 +9,7 @@ function CheckIn() {
   const [checkedInToday, setCheckedInToday] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadMembers();
@@ -97,6 +98,10 @@ function CheckIn() {
     );
   }
 
+  const filteredMembers = members.filter(member =>
+    member.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="container">
       <div className="card">
@@ -113,8 +118,23 @@ function CheckIn() {
           </div>
         ) : (
           <>
-            <div className="member-grid">
-              {members.map(member => (
+            <div className="input-group">
+              <input
+                type="text"
+                placeholder="Search for your name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ fontSize: '1.1rem' }}
+              />
+            </div>
+
+            {filteredMembers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#7f8c8d' }}>
+                No members found matching "{searchQuery}"
+              </div>
+            ) : (
+              <div className="member-grid">
+                {filteredMembers.map(member => (
                 <div
                   key={member.id}
                   className={`member-card ${
@@ -132,9 +152,10 @@ function CheckIn() {
                   )}
                 </div>
               ))}
-            </div>
+              </div>
+            )}
 
-            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
                 className="btn btn-success"
                 onClick={handleCheckIn}
@@ -148,6 +169,14 @@ function CheckIn() {
                   onClick={() => setSelectedMembers([])}
                 >
                   Clear Selection
+                </button>
+              )}
+              {searchQuery && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setSearchQuery('')}
+                >
+                  Clear Search
                 </button>
               )}
             </div>

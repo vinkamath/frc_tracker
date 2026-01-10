@@ -40,3 +40,7 @@ lerna-debug.log*
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# Mock Data
+populate-mock-data.js
+package.json

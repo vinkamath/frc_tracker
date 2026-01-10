@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { format, startOfWeek, subWeeks, eachWeekOfInterval, endOfWeek } from 'date-fns';
+import { format, startOfWeek, addDays } from 'date-fns';
 
 function Dashboard() {
   const [weeklyStats, setWeeklyStats] = useState([]);
@@ -55,13 +55,17 @@ function Dashboard() {
       });
 
       const stats = Array.from(weeklyData.values())
-        .map(week => ({
-          weekStart: week.weekStart,
-          weekEnd: format(endOfWeek(new Date(week.weekStart)), 'yyyy-MM-dd'),
-          totalAttendance: week.members.size,
-          newMembers: week.newMembers.size,
-          returningMembers: week.returningMembers.size
-        }))
+        .map(week => {
+          // Calculate Saturday (weekStart is Monday, so add 5 days)
+          const saturday = addDays(new Date(week.weekStart), 5);
+          return {
+            weekStart: week.weekStart,
+            saturday: format(saturday, 'yyyy-MM-dd'),
+            totalAttendance: week.members.size,
+            newMembers: week.newMembers.size,
+            returningMembers: week.returningMembers.size
+          };
+        })
         .sort((a, b) => b.weekStart.localeCompare(a.weekStart));
 
       setWeeklyStats(stats);
@@ -136,7 +140,7 @@ function Dashboard() {
                 {weeklyStats.map(week => (
                   <tr key={week.weekStart}>
                     <td style={{ fontWeight: '500' }}>
-                      {format(new Date(week.weekStart), 'MMM d')} - {format(new Date(week.weekEnd), 'MMM d, yyyy')}
+                      {format(new Date(week.saturday), 'EEEE, MMM d, yyyy')}
                     </td>
                     <td>{week.totalAttendance}</td>
                     <td>
