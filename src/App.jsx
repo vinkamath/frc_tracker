@@ -3,6 +3,7 @@ import CheckIn from './components/CheckIn';
 import Dashboard from './components/Dashboard';
 import Members from './components/Members';
 import History from './components/History';
+import logo from './assets/logo.png';
 
 function Nav() {
   const location = useLocation();
@@ -10,7 +11,9 @@ function Nav() {
   return (
     <nav className="nav">
       <div className="nav-content">
-        <h1>FRC Mumbai</h1>
+        <div className="nav-logo">
+          <img src={logo} alt="FRC Mumbai" className="logo" />
+        </div>
         <ul className="nav-links">
           <li>
             <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
