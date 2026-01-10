@@ -140,7 +140,7 @@ function Dashboard() {
                 {weeklyStats.map(week => (
                   <tr key={week.weekStart}>
                     <td style={{ fontWeight: '500' }}>
-                      {format(new Date(week.saturday), 'EEEE, MMM d, yyyy')}
+                      {format(new Date(week.saturday), 'MMM d')}
                     </td>
                     <td>{week.totalAttendance}</td>
                     <td>
