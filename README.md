@@ -1,182 +1,208 @@
-# Run Club Attendance Tracker
+# FRC Attendance Tracker
 
-A simple, mobile-friendly web app for tracking weekly attendance at your run club. Pass around a single phone for everyone to mark their attendance.
+A mobile-friendly web app for tracking weekly run club attendance. Built for FRC (Founders Run Club) chapters and other running groups who want a simple, shareable attendance system—pass a single phone around before or after the run and let members check themselves in.
+
+**Originally built for FRC Mumbai.** Fork this repo to spin up your own chapter's attendance app.
 
 ## Features
 
-- **Quick Check-In**: Members select their name from a list to check in
-- **Weekly Dashboard**: Track new vs returning members each week
-- **Member Management**: Add/remove members and view their stats
-- **Attendance History**: View past attendance records with filters
-- **CSV Export**: Download attendance data for analysis
+- **Quick Check-In** – Members select their name from a searchable list and tap to check in
+- **Weekly Dashboard** – Track total attendance, new members, and returning members per week
+- **Member Management** – Add and remove members, view total runs and last attendance
+- **Attendance History** – Browse past records with filters (today, last 30 days, all time)
+- **CSV Export** – Download attendance data for analysis or reporting
+- **Authentication** – Firebase Auth protects admin features (members, history, dashboard)
 
 ## Tech Stack
 
-- React 18 with Vite
-- Firebase Firestore (database)
-- React Router (navigation)
-- date-fns (date handling)
+| Layer | Technology |
+|-------|------------|
+| Framework | React 18 + Vite |
+| Styling | Tailwind CSS v4, shadcn/ui |
+| Database | Firebase Firestore |
+| Auth | Firebase Authentication |
+| Routing | React Router v6 |
+| Date handling | date-fns |
 
-## Setup Instructions
+## Prerequisites
 
-### 1. Install Dependencies
+- **Node.js** 18+ (recommend 20+)
+- **npm** or **pnpm**
+- A **Firebase** project (free tier works)
+
+## Quick Start
 
 ```bash
+# Clone the repo
+git clone https://github.com/your-org/frc-attendance.git
+cd frc-attendance
+
+# Install dependencies
 npm install
-```
 
-### 2. Set Up Firebase
+# Configure Firebase (see below)
+# Edit src/firebase.js with your project's config
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project (or use an existing one)
-3. Enable Firestore Database:
-   - Click "Firestore Database" in the left menu
-   - Click "Create database"
-   - Start in **test mode** for development (you can set up security rules later)
-   - Choose a location close to you
-
-4. Get your Firebase configuration:
-   - Go to Project Settings (gear icon) > General
-   - Scroll down to "Your apps"
-   - Click the web icon (`</>`) to register a web app
-   - Copy the `firebaseConfig` object
-
-5. Update `src/firebase.js`:
-   - Replace the placeholder values with your actual Firebase config
-
-### 3. Run the App
-
-```bash
+# Run locally
 npm run dev
 ```
 
-The app will open at `http://localhost:5173`
+Open `http://localhost:5173` in your browser.
 
-### 4. Add Your First Members
+## Setup Guide
 
-1. Navigate to the "Members" page
-2. Click "Add Member"
-3. Add all your run club members
-4. Now you can start checking people in!
+### 1. Create a Firebase Project
 
-## Usage
+Each chapter should use its own Firebase project so data stays separate.
 
-### Check-In Flow
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project (e.g. `frc-your-chapter-attendance`)
+3. Enable **Firestore Database**:
+   - Firestore Database → Create database
+   - Start in **test mode** for development
+   - Pick a region close to your users
 
-1. Open the app on a phone
-2. Pass the phone around before/after the run
-3. Each person taps their name and clicks "Check In"
-4. See who's already checked in (grayed out)
+4. Enable **Authentication**:
+   - Authentication → Get started
+   - Enable **Email/Password** (or another provider you prefer)
 
-### Dashboard
+5. Register a web app:
+   - Project Settings → Your apps → Add app → Web (`</>`)
+   - Copy the `firebaseConfig` object
 
-View weekly stats including:
-- Total attendance this week
-- Number of new members
-- Number of returning members
-- Average weekly attendance
-- Historical trends
+### 2. Configure the App
 
-### History & Export
+Update `src/firebase.js` with your Firebase config:
 
-- View all past attendance records
-- Filter by today, last 30 days, or all time
-- Export data to CSV for further analysis
-
-## Database Structure
-
-### Collections
-
-**members**
 ```javascript
-{
-  name: "John Doe",
-  joinedDate: "2024-01-15",
-  createdAt: "2024-01-15T10:30:00Z"
-}
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "...",
+  appId: "...",
+  measurementId: "G-..." // optional
+};
 ```
 
-**attendance**
-```javascript
-{
-  memberId: "abc123",
-  date: "2024-01-15",
-  weekStart: "2024-01-14",  // Monday of that week
-  timestamp: "2024-01-15T18:30:00Z"
-}
+### 3. Add Your First Members
+
+1. Run the app and sign in with a test account
+2. Go to **Members** → **Add Member**
+3. Add your run club members
+4. Use **Check In** to start recording attendance
+
+## Customizing for Your Chapter
+
+### Rebranding
+
+| What to change | Where |
+|----------------|-------|
+| App title | `index.html` (`<title>`), `src/App.jsx` (nav `<h1>`) |
+| Logo | Replace `src/assets/logo.png` |
+| Favicon | Replace `public/favicon.ico` |
+
+### Theming
+
+Colors and typography are defined in `src/index.css` via CSS variables. The primary accent is teal by default; adjust `--primary`, `--primary-foreground`, and related variables in `:root` to match your chapter’s branding.
+
+## Project Structure
+
 ```
+src/
+├── components/       # React components
+│   ├── ui/          # shadcn/ui components (Button, Card, etc.)
+│   ├── CheckIn.jsx  # Main check-in flow
+│   ├── Dashboard.jsx
+│   ├── History.jsx
+│   ├── Login.jsx
+│   ├── Members.jsx
+│   └── ProtectedRoute.jsx
+├── context/         # Auth context
+├── lib/             # Utilities (cn, etc.)
+├── firebase.js      # Firebase config and exports
+├── index.css        # Global styles and theme
+├── App.jsx
+└── main.jsx
+```
+
+## Database Schema
+
+### `members`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Member's full name |
+| `joinedDate` | string | ISO date (YYYY-MM-DD) |
+| `createdAt` | string | ISO timestamp |
+
+### `attendance`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `memberId` | string | Firestore document ID of the member |
+| `date` | string | Date of check-in (YYYY-MM-DD) |
+| `weekStart` | string | Monday of that week (YYYY-MM-DD) |
+| `timestamp` | string | ISO timestamp of check-in |
 
 ## Deployment
 
-### Option 1: Firebase Hosting
+### Firebase Hosting
 
 ```bash
 npm run build
-npm install -g firebase-tools
 firebase login
-firebase init hosting
+firebase init hosting  # if not already configured
 firebase deploy
 ```
 
-### Option 2: Vercel
+### Vercel or Netlify
 
-1. Push your code to GitHub
-2. Connect your repo to [Vercel](https://vercel.com)
-3. Deploy with one click
+1. Push your repo to GitHub
+2. Connect the repo to [Vercel](https://vercel.com) or [Netlify](https://netlify.com)
+3. Build command: `npm run build`
+4. Output directory: `dist`
+5. Add Firebase config via environment variables if you use a separate env file
 
-### Option 3: Netlify
+## Security
 
-```bash
-npm run build
-# Drag and drop the 'dist' folder to Netlify
-```
+**Before going to production:**
 
-## Security Considerations
+1. **Firestore rules** – Replace test-mode rules with rules that require auth for writes. Example:
 
-For production, update your Firestore security rules:
+   ```javascript
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /members/{doc} {
+         allow read: if request.auth != null;
+         allow write: if request.auth != null;
+       }
+       match /attendance/{doc} {
+         allow read: if request.auth != null;
+         allow write: if request.auth != null;
+       }
+     }
+   }
+   ```
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Allow read access to all
-    match /members/{document=**} {
-      allow read: if true;
-      allow write: if true; // Add authentication if needed
-    }
-    match /attendance/{document=**} {
-      allow read: if true;
-      allow write: if true; // Add authentication if needed
-    }
-  }
-}
-```
+2. **Firebase config** – Don’t commit production API keys if you use different configs per environment. Use env vars or a config service.
 
-For stricter security, consider adding Firebase Authentication.
+3. **Auth** – Restrict sign-ups to your chapter if needed (e.g. with Firebase Auth allowed domains or an invite flow).
 
 ## Troubleshooting
 
-### "Permission denied" errors
-- Check that Firestore is in test mode or security rules allow access
-- Verify your Firebase config is correct
+| Issue | What to check |
+|-------|----------------|
+| "Permission denied" in Firestore | Firestore rules and that the user is signed in |
+| Members not loading | Browser console, Firestore is created, Firebase config is correct |
+| App won’t start | `npm install`, Node 18+, delete `node_modules` and reinstall if needed |
+| Tailwind/shadcn styles missing | Ensure `@import "tailwindcss"` and `@import "tw-animate-css"` are in `src/index.css` |
 
-### Members not loading
-- Check browser console for errors
-- Verify Firebase project is active
-- Check that Firestore database is created
+## Contributing
 
-### App won't start
-- Run `npm install` again
-- Delete `node_modules` and `package-lock.json`, then `npm install`
-- Check that you're using Node.js version 16 or higher
-
-## Future Enhancements
-
-- Add authentication for admin features
-- Send reminder notifications before runs
-- Track member streaks and milestones
-- Add photos from runs
-- Integration with Strava or other running apps
+Contributions are welcome. Please open an issue to discuss changes, or submit a pull request.
 
 ## License
 
