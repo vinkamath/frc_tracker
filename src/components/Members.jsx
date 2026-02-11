@@ -28,7 +28,16 @@ function Members() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberPhone, setNewMemberPhone] = useState('');
   const [memberStats, setMemberStats] = useState({});
+
+  const normalizePhone = (phone) => phone.replace(/\D/g, '');
+  const formatPhoneDisplay = (phone) => {
+    const digits = String(phone).replace(/\D/g, '');
+    if (digits.length === 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    if (digits.length === 11 && digits.startsWith('1')) return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+    return phone;
+  };
 
   useEffect(() => {
     loadMembers();
@@ -81,14 +90,37 @@ function Members() {
       alert('Please enter a member name');
       return;
     }
+    if (!newMemberPhone.trim()) {
+      alert('Please enter a phone number');
+      return;
+    }
+
+    const normalizedPhone = normalizePhone(newMemberPhone.trim());
+    if (normalizedPhone.length < 10) {
+      alert('Please enter a valid phone number (at least 10 digits)');
+      return;
+    }
 
     try {
+      const existingQuery = query(
+        collection(db, 'members'),
+        where('phone', '==', normalizedPhone)
+      );
+      const existingSnapshot = await getDocs(existingQuery);
+      if (!existingSnapshot.empty) {
+        const existingMember = existingSnapshot.docs[0].data();
+        alert(`This phone number is already registered to ${existingMember.name}. Please use a different number or contact the admin.`);
+        return;
+      }
+
       await addDoc(collection(db, 'members'), {
         name: newMemberName.trim(),
+        phone: normalizedPhone,
         joinedDate: format(new Date(), 'yyyy-MM-dd'),
         createdAt: new Date().toISOString()
       });
       setNewMemberName('');
+      setNewMemberPhone('');
       setShowAddModal(false);
       await loadMembers();
     } catch (error) {
@@ -141,6 +173,7 @@ function Members() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Phone</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Total Runs</TableHead>
                   <TableHead>Last Attendance</TableHead>
@@ -153,6 +186,9 @@ function Members() {
                   return (
                     <TableRow key={member.id}>
                       <TableCell className="font-medium">{member.name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {member.phone ? formatPhoneDisplay(member.phone) : '—'}
+                      </TableCell>
                       <TableCell>
                         {member.joinedDate ? format(new Date(member.joinedDate), 'MMM d, yyyy') : 'N/A'}
                       </TableCell>
@@ -178,11 +214,17 @@ function Members() {
         </CardContent>
       </Card>
 
-      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+      <Dialog open={showAddModal} onOpenChange={(open) => {
+        setShowAddModal(open);
+        if (!open) {
+          setNewMemberName('');
+          setNewMemberPhone('');
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Member</DialogTitle>
-            <DialogDescription>Enter the name of the new member to add to the run club.</DialogDescription>
+            <DialogDescription>Enter the name and phone number of the new member to add to the run club.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddMember} className="space-y-4">
             <div className="space-y-2">
@@ -194,6 +236,16 @@ function Members() {
                 onChange={(e) => setNewMemberName(e.target.value)}
                 placeholder="Enter member name"
                 autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="member-phone">Phone Number</Label>
+              <Input
+                id="member-phone"
+                type="tel"
+                value={newMemberPhone}
+                onChange={(e) => setNewMemberPhone(e.target.value)}
+                placeholder="(555) 123-4567"
               />
             </div>
             <DialogFooter>
