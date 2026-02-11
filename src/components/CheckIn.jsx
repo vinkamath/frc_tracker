@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import AddMemberDialog from './AddMemberDialog';
 
 function CheckIn() {
   const [members, setMembers] = useState([]);
@@ -15,6 +16,7 @@ function CheckIn() {
   const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     loadMembers();
@@ -51,6 +53,11 @@ function CheckIn() {
     } catch (error) {
       console.error('Error loading today\'s attendance:', error);
     }
+  };
+
+  const handleAddMemberSuccess = async (newMemberId) => {
+    await loadMembers();
+    setSelectedMembers(prev => [...prev, newMemberId]);
   };
 
   const toggleMember = (memberId) => {
@@ -119,23 +126,29 @@ function CheckIn() {
           {members.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
               <h3 className="mb-2 font-medium text-foreground">No members found</h3>
-              <p>Add members in the Members section to get started</p>
+              <p className="mb-4">Add your first member to get started</p>
+              <Button onClick={() => setShowAddModal(true)}>Add Member</Button>
             </div>
           ) : (
             <>
-              <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-3">
                 <Input
                   type="text"
                   placeholder="Search for your name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="text-base"
+                  className="flex-1 min-w-[200px] text-base"
                 />
+                <Button variant="outline" onClick={() => setShowAddModal(true)}>
+                  Add Member
+                </Button>
               </div>
 
               {filteredMembers.length === 0 ? (
                 <div className="py-8 text-center text-muted-foreground">
-                  No members found matching "{searchQuery}"
+                  <p className="mb-4">No members found matching "{searchQuery}"</p>
+                  <p className="mb-4">Can&apos;t find your name? Add yourself and check in.</p>
+                  <Button onClick={() => setShowAddModal(true)}>Add Member</Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
@@ -181,6 +194,12 @@ function CheckIn() {
           )}
         </CardContent>
       </Card>
+
+      <AddMemberDialog
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onSuccess={handleAddMemberSuccess}
+      />
 
       <p className="mt-4 text-center text-sm text-muted-foreground">
         {format(new Date(), 'EEEE, MMMM d, yyyy')}

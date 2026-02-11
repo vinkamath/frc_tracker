@@ -1,19 +1,9 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -22,16 +12,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import AddMemberDialog from './AddMemberDialog';
 
 function Members() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newMemberName, setNewMemberName] = useState('');
-  const [newMemberPhone, setNewMemberPhone] = useState('');
   const [memberStats, setMemberStats] = useState({});
 
-  const normalizePhone = (phone) => phone.replace(/\D/g, '');
   const formatPhoneDisplay = (phone) => {
     const digits = String(phone).replace(/\D/g, '');
     if (digits.length === 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
@@ -81,51 +69,6 @@ function Members() {
       setMemberStats(stats);
     } catch (error) {
       console.error('Error loading member stats:', error);
-    }
-  };
-
-  const handleAddMember = async (e) => {
-    e.preventDefault();
-    if (!newMemberName.trim()) {
-      alert('Please enter a member name');
-      return;
-    }
-    if (!newMemberPhone.trim()) {
-      alert('Please enter a phone number');
-      return;
-    }
-
-    const normalizedPhone = normalizePhone(newMemberPhone.trim());
-    if (normalizedPhone.length < 10) {
-      alert('Please enter a valid phone number (at least 10 digits)');
-      return;
-    }
-
-    try {
-      const existingQuery = query(
-        collection(db, 'members'),
-        where('phone', '==', normalizedPhone)
-      );
-      const existingSnapshot = await getDocs(existingQuery);
-      if (!existingSnapshot.empty) {
-        const existingMember = existingSnapshot.docs[0].data();
-        alert(`This phone number is already registered to ${existingMember.name}. Please use a different number or contact the admin.`);
-        return;
-      }
-
-      await addDoc(collection(db, 'members'), {
-        name: newMemberName.trim(),
-        phone: normalizedPhone,
-        joinedDate: format(new Date(), 'yyyy-MM-dd'),
-        createdAt: new Date().toISOString()
-      });
-      setNewMemberName('');
-      setNewMemberPhone('');
-      setShowAddModal(false);
-      await loadMembers();
-    } catch (error) {
-      console.error('Error adding member:', error);
-      alert('Error adding member. Please try again.');
     }
   };
 
@@ -214,49 +157,11 @@ function Members() {
         </CardContent>
       </Card>
 
-      <Dialog open={showAddModal} onOpenChange={(open) => {
-        setShowAddModal(open);
-        if (!open) {
-          setNewMemberName('');
-          setNewMemberPhone('');
-        }
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Member</DialogTitle>
-            <DialogDescription>Enter the name and phone number of the new member to add to the run club.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAddMember} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="member-name">Member Name</Label>
-              <Input
-                id="member-name"
-                type="text"
-                value={newMemberName}
-                onChange={(e) => setNewMemberName(e.target.value)}
-                placeholder="Enter member name"
-                autoFocus
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="member-phone">Phone Number</Label>
-              <Input
-                id="member-phone"
-                type="tel"
-                value={newMemberPhone}
-                onChange={(e) => setNewMemberPhone(e.target.value)}
-                placeholder="(555) 123-4567"
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="secondary" onClick={() => setShowAddModal(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Add Member</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <AddMemberDialog
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onSuccess={loadMembers}
+      />
     </div>
   );
 }
