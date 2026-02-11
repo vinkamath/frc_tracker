@@ -5,10 +5,26 @@ import Login from './components/Login';
 import CheckIn from './components/CheckIn';
 import Dashboard from './components/Dashboard';
 import Members from './components/Members';
+import History from './components/History';
+import { Button } from './components/ui/button';
 import logo from './assets/logo.png';
 
-function Nav() {
+function NavLink({ to, children }) {
   const location = useLocation();
+  const isActive = location.pathname === to;
+  return (
+    <Link
+      to={to}
+      className={`font-medium transition-colors hover:opacity-90 ${
+        isActive ? 'border-b-2 border-white pb-1' : ''
+      }`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function Nav() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
@@ -18,31 +34,21 @@ function Nav() {
   };
 
   return (
-    <nav className="nav">
-      <div className="nav-content">
-        <div className="nav-logo">
-          <img src={logo} alt="FRC Mumbai" className="logo" />
+    <nav className="sticky top-0 z-50 w-full border-b bg-foreground text-background shadow-sm">
+      <div className="mx-auto flex h-16 max-w-6xl flex-col items-center justify-between gap-4 px-4 py-3 sm:flex-row sm:px-6">
+        <div className="flex items-center gap-4">
+          <img src={logo} alt="FRC Mumbai" className="h-9 w-auto sm:h-10" />
+          <h1 className="text-base font-semibold sm:text-lg">FRC Mumbai</h1>
         </div>
-        <ul className="nav-links">
+        <ul className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+          <li><NavLink to="/">Check In</NavLink></li>
+          <li><NavLink to="/dashboard">Dashboard</NavLink></li>
+          <li><NavLink to="/members">Members</NavLink></li>
+          <li><NavLink to="/history">History</NavLink></li>
           <li>
-            <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
-              Check In
-            </Link>
-          </li>
-          <li>
-            <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>
-              Dashboard
-            </Link>
-          </li>
-          <li>
-            <Link to="/members" className={location.pathname === '/members' ? 'active' : ''}>
-              Members
-            </Link>
-          </li>
-          <li>
-            <button type="button" className="btn btn-secondary" onClick={handleSignOut} style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
+            <Button variant="secondary" size="sm" onClick={handleSignOut} className="bg-white/10 text-white hover:bg-white/20">
               Sign Out
-            </button>
+            </Button>
           </li>
         </ul>
       </div>
@@ -70,6 +76,7 @@ function App() {
               <Route path="/" element={<CheckIn />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/members" element={<Members />} />
+              <Route path="/history" element={<History />} />
             </Route>
           </Route>
         </Routes>

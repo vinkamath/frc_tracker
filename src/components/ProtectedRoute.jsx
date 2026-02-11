@@ -8,8 +8,8 @@ export default function ProtectedRoute() {
 
   if (loading) {
     return (
-      <div className="container">
-        <div className="loading">Checking authentication...</div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-muted-foreground">Checking authentication...</div>
       </div>
     );
   }

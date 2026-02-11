@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, addDoc, query, where, orderBy } from 'firebase/firestore';
-import { format, startOfWeek, endOfWeek } from 'date-fns';
+import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
+import { format, startOfWeek } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 function CheckIn() {
   const [members, setMembers] = useState([]);
@@ -49,10 +54,7 @@ function CheckIn() {
   };
 
   const toggleMember = (memberId) => {
-    if (checkedInToday.has(memberId)) {
-      return;
-    }
-
+    if (checkedInToday.has(memberId)) return;
     setSelectedMembers(prev =>
       prev.includes(memberId)
         ? prev.filter(id => id !== memberId)
@@ -82,7 +84,6 @@ function CheckIn() {
       setSuccessMessage(`${selectedMembers.length} member(s) checked in successfully!`);
       setSelectedMembers([]);
       await loadTodayAttendance();
-
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Error checking in:', error);
@@ -92,8 +93,8 @@ function CheckIn() {
 
   if (loading) {
     return (
-      <div className="container">
-        <div className="loading">Loading members...</div>
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="py-12 text-center text-muted-foreground">Loading members...</div>
       </div>
     );
   }
@@ -103,90 +104,87 @@ function CheckIn() {
   );
 
   return (
-    <div className="container">
-      <div className="card">
-        <h2>Who came to the run today?</h2>
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Who came to the run today?</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {successMessage && (
+            <Alert className="border-primary/50 bg-primary/10 text-primary">
+              <AlertDescription>{successMessage}</AlertDescription>
+            </Alert>
+          )}
 
-        {successMessage && (
-          <div className="success-message">{successMessage}</div>
-        )}
-
-        {members.length === 0 ? (
-          <div className="empty-state">
-            <h3>No members found</h3>
-            <p>Add members in the Members section to get started</p>
-          </div>
-        ) : (
-          <>
-            <div className="input-group">
-              <input
-                type="text"
-                placeholder="Search for your name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ fontSize: '1.1rem' }}
-              />
+          {members.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">
+              <h3 className="mb-2 font-medium text-foreground">No members found</h3>
+              <p>Add members in the Members section to get started</p>
             </div>
-
-            {filteredMembers.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2rem', color: '#7f8c8d' }}>
-                No members found matching "{searchQuery}"
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  placeholder="Search for your name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="text-base"
+                />
               </div>
-            ) : (
-              <div className="member-grid">
-                {filteredMembers.map(member => (
-                <div
-                  key={member.id}
-                  className={`member-card ${
-                    selectedMembers.includes(member.id) ? 'selected' : ''
-                  } ${checkedInToday.has(member.id) ? 'checked-in' : ''}`}
-                  onClick={() => toggleMember(member.id)}
-                >
-                  <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>
-                    {member.name}
-                  </div>
-                  {checkedInToday.has(member.id) && (
-                    <div style={{ fontSize: '0.8rem', color: '#27ae60', marginTop: '0.25rem' }}>
-                      ✓ Checked in
-                    </div>
-                  )}
+
+              {filteredMembers.length === 0 ? (
+                <div className="py-8 text-center text-muted-foreground">
+                  No members found matching "{searchQuery}"
                 </div>
-              ))}
+              ) : (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
+                  {filteredMembers.map(member => (
+                    <div
+                      key={member.id}
+                      className={cn(
+                        "cursor-pointer rounded-lg border-2 p-4 text-center transition-all",
+                        "hover:border-primary/50 hover:shadow-md",
+                        selectedMembers.includes(member.id) && "border-primary bg-primary/10",
+                        checkedInToday.has(member.id) && "cursor-default border-muted bg-muted/50 opacity-70"
+                      )}
+                      onClick={() => toggleMember(member.id)}
+                    >
+                      <div className="font-medium">{member.name}</div>
+                      {checkedInToday.has(member.id) && (
+                        <div className="mt-1 text-sm text-primary">✓ Checked in</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-3 pt-4">
+                <Button
+                  onClick={handleCheckIn}
+                  disabled={selectedMembers.length === 0}
+                >
+                  Check In ({selectedMembers.length})
+                </Button>
+                {selectedMembers.length > 0 && (
+                  <Button variant="secondary" onClick={() => setSelectedMembers([])}>
+                    Clear Selection
+                  </Button>
+                )}
+                {searchQuery && (
+                  <Button variant="secondary" onClick={() => setSearchQuery('')}>
+                    Clear Search
+                  </Button>
+                )}
               </div>
-            )}
+            </>
+          )}
+        </CardContent>
+      </Card>
 
-            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <button
-                className="btn btn-success"
-                onClick={handleCheckIn}
-                disabled={selectedMembers.length === 0}
-              >
-                Check In ({selectedMembers.length})
-              </button>
-              {selectedMembers.length > 0 && (
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setSelectedMembers([])}
-                >
-                  Clear Selection
-                </button>
-              )}
-              {searchQuery && (
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setSearchQuery('')}
-                >
-                  Clear Search
-                </button>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-
-      <div style={{ textAlign: 'center', color: '#7f8c8d', marginTop: '1rem' }}>
+      <p className="mt-4 text-center text-sm text-muted-foreground">
         {format(new Date(), 'EEEE, MMMM d, yyyy')}
-      </div>
+      </p>
     </div>
   );
 }

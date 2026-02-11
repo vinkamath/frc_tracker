@@ -1,7 +1,33 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { format, startOfWeek, addDays } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+function StatCard({ title, value, variant = 'default' }) {
+  const variants = {
+    default: 'border-primary/20 bg-primary/5',
+    green: 'border-primary/30 bg-primary/10',
+    blue: 'border-primary/20 bg-primary/5',
+    orange: 'border-primary/25 bg-primary/8',
+  };
+  return (
+    <Card className={variants[variant]}>
+      <CardContent className="pt-6">
+        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+        <p className="mt-1 text-3xl font-bold">{value}</p>
+      </CardContent>
+    </Card>
+  );
+}
 
 function Dashboard() {
   const [weeklyStats, setWeeklyStats] = useState([]);
@@ -17,14 +43,10 @@ function Dashboard() {
       const membersMap = new Map();
       membersSnapshot.docs.forEach(doc => {
         const data = doc.data();
-        membersMap.set(doc.id, {
-          name: data.name,
-          joinedDate: data.joinedDate
-        });
+        membersMap.set(doc.id, { name: data.name, joinedDate: data.joinedDate });
       });
 
       const attendanceSnapshot = await getDocs(collection(db, 'attendance'));
-
       const weeklyData = new Map();
 
       attendanceSnapshot.docs.forEach(doc => {
@@ -56,7 +78,6 @@ function Dashboard() {
 
       const stats = Array.from(weeklyData.values())
         .map(week => {
-          // Calculate Saturday (weekStart is Monday, so add 5 days)
           const saturday = addDays(new Date(week.weekStart), 5);
           return {
             weekStart: week.weekStart,
@@ -78,8 +99,8 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="container">
-        <div className="loading">Loading dashboard...</div>
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="py-12 text-center text-muted-foreground">Loading dashboard...</div>
       </div>
     );
   }
@@ -90,72 +111,55 @@ function Dashboard() {
     : 0;
 
   return (
-    <div className="container">
-      <div className="card">
-        <h2>Weekly Dashboard</h2>
-
-        <div className="stats-grid">
-          <div className="stat-card blue">
-            <h3>This Week's Attendance</h3>
-            <div className="value">{currentWeek.totalAttendance}</div>
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Weekly Dashboard</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard title="This Week's Attendance" value={currentWeek.totalAttendance} variant="blue" />
+            <StatCard title="New Members This Week" value={currentWeek.newMembers} variant="green" />
+            <StatCard title="Returning Members" value={currentWeek.returningMembers} variant="orange" />
+            <StatCard title="Average Weekly Attendance" value={avgAttendance} />
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="stat-card green">
-            <h3>New Members This Week</h3>
-            <div className="value">{currentWeek.newMembers}</div>
-          </div>
-
-          <div className="stat-card orange">
-            <h3>Returning Members</h3>
-            <div className="value">{currentWeek.returningMembers}</div>
-          </div>
-
-          <div className="stat-card">
-            <h3>Average Weekly Attendance</h3>
-            <div className="value">{avgAttendance}</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="card">
-        <h2>Weekly Trends</h2>
-
-        {weeklyStats.length === 0 ? (
-          <div className="empty-state">
-            <h3>No data yet</h3>
-            <p>Start checking in members to see weekly trends</p>
-          </div>
-        ) : (
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Week</th>
-                  <th>Total Attendance</th>
-                  <th>New Members</th>
-                  <th>Returning Members</th>
-                </tr>
-              </thead>
-              <tbody>
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Weekly Trends</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {weeklyStats.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">
+              <h3 className="mb-2 font-medium text-foreground">No data yet</h3>
+              <p>Start checking in members to see weekly trends</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Week</TableHead>
+                  <TableHead>Total Attendance</TableHead>
+                  <TableHead>New Members</TableHead>
+                  <TableHead>Returning Members</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {weeklyStats.map(week => (
-                  <tr key={week.weekStart}>
-                    <td style={{ fontWeight: '500' }}>
-                      {format(new Date(week.saturday), 'MMM d')}
-                    </td>
-                    <td>{week.totalAttendance}</td>
-                    <td>
-                      <span style={{ color: '#27ae60', fontWeight: '500' }}>
-                        {week.newMembers}
-                      </span>
-                    </td>
-                    <td>{week.returningMembers}</td>
-                  </tr>
+                  <TableRow key={week.weekStart}>
+                    <TableCell className="font-medium">{format(new Date(week.saturday), 'MMM d')}</TableCell>
+                    <TableCell>{week.totalAttendance}</TableCell>
+                    <TableCell className="font-medium text-primary">{week.newMembers}</TableCell>
+                    <TableCell>{week.returningMembers}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
