@@ -1,4 +1,7 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './components/Login';
 import CheckIn from './components/CheckIn';
 import Dashboard from './components/Dashboard';
 import Members from './components/Members';
@@ -6,6 +9,13 @@ import logo from './assets/logo.png';
 
 function Nav() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <nav className="nav">
@@ -29,22 +39,42 @@ function Nav() {
               Members
             </Link>
           </li>
+          <li>
+            <button type="button" className="btn btn-secondary" onClick={handleSignOut} style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
+              Sign Out
+            </button>
+          </li>
         </ul>
       </div>
     </nav>
   );
 }
 
+function LayoutWithNav() {
+  return (
+    <>
+      <Nav />
+      <Outlet />
+    </>
+  );
+}
+
 function App() {
   return (
-    <Router>
-      <Nav />
-      <Routes>
-        <Route path="/" element={<CheckIn />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/members" element={<Members />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<LayoutWithNav />}>
+              <Route path="/" element={<CheckIn />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/members" element={<Members />} />
+            </Route>
+          </Route>
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
