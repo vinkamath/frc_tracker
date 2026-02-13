@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
@@ -9,12 +11,13 @@ import History from './components/History';
 import { Button } from './components/ui/button';
 import logo from './assets/logo.png';
 
-function NavLink({ to, children }) {
+function NavLink({ to, children, onClick }) {
   const location = useLocation();
   const isActive = location.pathname === to;
   return (
     <Link
       to={to}
+      onClick={onClick}
       className={`font-medium transition-colors hover:opacity-90 ${
         isActive ? 'border-b-2 border-white pb-1' : ''
       }`}
@@ -25,6 +28,7 @@ function NavLink({ to, children }) {
 }
 
 function Nav() {
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
@@ -33,25 +37,55 @@ function Nav() {
     navigate('/login', { replace: true });
   };
 
+  const closeMenu = () => setMenuOpen(false);
+
+  const navLinks = (
+    <>
+      <li><NavLink to="/" onClick={closeMenu}>Check In</NavLink></li>
+      <li><NavLink to="/dashboard" onClick={closeMenu}>Dashboard</NavLink></li>
+      <li><NavLink to="/members" onClick={closeMenu}>Members</NavLink></li>
+      <li><NavLink to="/history" onClick={closeMenu}>History</NavLink></li>
+      <li>
+        <Button variant="secondary" size="sm" onClick={handleSignOut} className="bg-white/10 text-white hover:bg-white/20">
+          Sign Out
+        </Button>
+      </li>
+    </>
+  );
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-foreground text-background shadow-sm">
-      <div className="mx-auto flex h-16 max-w-6xl flex-col items-center justify-between gap-4 px-4 py-3 sm:flex-row sm:px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-4">
           <img src={logo} alt="FRC Mumbai" className="h-9 w-auto sm:h-10" />
           <h1 className="text-base font-semibold sm:text-lg">FRC Mumbai</h1>
         </div>
-        <ul className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-          <li><NavLink to="/">Check In</NavLink></li>
-          <li><NavLink to="/dashboard">Dashboard</NavLink></li>
-          <li><NavLink to="/members">Members</NavLink></li>
-          <li><NavLink to="/history">History</NavLink></li>
-          <li>
-            <Button variant="secondary" size="sm" onClick={handleSignOut} className="bg-white/10 text-white hover:bg-white/20">
-              Sign Out
-            </Button>
-          </li>
+
+        {/* Desktop nav */}
+        <ul className="hidden items-center gap-6 sm:flex">
+          {navLinks}
         </ul>
+
+        {/* Mobile hamburger button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="sm:hidden text-white hover:bg-white/10"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        >
+          {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {menuOpen && (
+        <div className="border-t border-white/20 sm:hidden">
+          <ul className="flex flex-col gap-2 px-4 py-4">
+            {navLinks}
+          </ul>
+        </div>
+      )}
     </nav>
   );
 }
