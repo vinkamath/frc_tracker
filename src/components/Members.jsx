@@ -18,6 +18,7 @@ function Members() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editMember, setEditMember] = useState(null);
   const [memberStats, setMemberStats] = useState({});
 
   const formatPhoneDisplay = (phone) => {
@@ -103,7 +104,7 @@ function Members() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Members</CardTitle>
-          <Button onClick={() => setShowAddModal(true)}>Add Member</Button>
+          <Button onClick={() => { setEditMember(null); setShowAddModal(true); }}>Add Member</Button>
         </CardHeader>
         <CardContent>
           {members.length === 0 ? (
@@ -140,13 +141,22 @@ function Members() {
                         {stats.lastAttendance ? format(new Date(stats.lastAttendance), 'MMM d, yyyy') : 'Never'}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteMember(member.id, member.name)}
-                        >
-                          Delete
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => { setEditMember(member); setShowAddModal(true); }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteMember(member.id, member.name)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -159,8 +169,9 @@ function Members() {
 
       <AddMemberDialog
         open={showAddModal}
-        onOpenChange={setShowAddModal}
+        onOpenChange={(open) => { if (!open) setEditMember(null); setShowAddModal(open); }}
         onSuccess={loadMembers}
+        member={editMember}
       />
     </div>
   );

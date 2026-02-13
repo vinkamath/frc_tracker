@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,9 +16,29 @@ import {
 
 const normalizePhone = (phone) => phone.replace(/\D/g, '');
 
-function AddMemberDialog({ open, onOpenChange, onSuccess }) {
+const formatPhoneDisplay = (phone) => {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (digits.length === 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  return phone || '';
+};
+
+function AddMemberDialog({ open, onOpenChange, onSuccess, member: editMember }) {
+  const isEdit = !!editMember;
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+
+  useEffect(() => {
+    if (open) {
+      if (editMember) {
+        setName(editMember.name || '');
+        setPhone(editMember.phone ? formatPhoneDisplay(editMember.phone) : '');
+      } else {
+        setName('');
+        setPhone('');
+      }
+    }
+  }, [open, editMember]);
 
   const resetForm = () => {
     setName('');
@@ -53,25 +73,35 @@ function AddMemberDialog({ open, onOpenChange, onSuccess }) {
         where('phone', '==', normalizedPhone)
       );
       const existingSnapshot = await getDocs(existingQuery);
-      if (!existingSnapshot.empty) {
-        const existingMember = existingSnapshot.docs[0].data();
+      const conflictingDoc = existingSnapshot.docs.find(d => !isEdit || d.id !== editMember.id);
+      if (conflictingDoc) {
+        const existingMember = conflictingDoc.data();
         alert(`This phone number is already registered to ${existingMember.name}. Please use a different number or contact the admin.`);
         return;
       }
 
-      const docRef = await addDoc(collection(db, 'members'), {
-        name: name.trim(),
-        phone: normalizedPhone,
-        joinedDate: format(new Date(), 'yyyy-MM-dd'),
-        createdAt: new Date().toISOString()
-      });
-
-      resetForm();
-      handleOpenChange(false);
-      onSuccess?.(docRef.id);
+      if (isEdit) {
+        await updateDoc(doc(db, 'members', editMember.id), {
+          name: name.trim(),
+          phone: normalizedPhone
+        });
+        resetForm();
+        handleOpenChange(false);
+        onSuccess?.();
+      } else {
+        const docRef = await addDoc(collection(db, 'members'), {
+          name: name.trim(),
+          phone: normalizedPhone,
+          joinedDate: format(new Date(), 'yyyy-MM-dd'),
+          createdAt: new Date().toISOString()
+        });
+        resetForm();
+        handleOpenChange(false);
+        onSuccess?.(docRef.id);
+      }
     } catch (error) {
-      console.error('Error adding member:', error);
-      alert('Error adding member. Please try again.');
+      console.error(isEdit ? 'Error updating member:' : 'Error adding member:', error);
+      alert(isEdit ? 'Error updating member. Please try again.' : 'Error adding member. Please try again.');
     }
   };
 
@@ -79,9 +109,11 @@ function AddMemberDialog({ open, onOpenChange, onSuccess }) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Member</DialogTitle>
+          <DialogTitle>{isEdit ? 'Edit Member' : 'Add New Member'}</DialogTitle>
           <DialogDescription>
-            Enter the name and phone number of the new member to add to the run club.
+            {isEdit
+              ? 'Update the member\'s name and phone number.'
+              : 'Enter the name and phone number of the new member to add to the run club.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,7 +142,7 @@ function AddMemberDialog({ open, onOpenChange, onSuccess }) {
             <Button type="button" variant="secondary" onClick={() => handleOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">Add Member</Button>
+            <Button type="submit">{isEdit ? 'Save Changes' : 'Add Member'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
