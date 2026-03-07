@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
-import { format, startOfWeek } from 'date-fns';
+import { db, app } from '../firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -76,19 +77,20 @@ function CheckIn() {
     }
 
     try {
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const weekStart = format(startOfWeek(new Date()), 'yyyy-MM-dd');
+      const functions = getFunctions(app);
+      const checkInFn = httpsCallable(functions, 'checkIn');
+      const { data } = await checkInFn({ memberIds: selectedMembers });
+      const { checkedIn = [], alreadyCheckedIn = [] } = data || {};
 
-      for (const memberId of selectedMembers) {
-        await addDoc(collection(db, 'attendance'), {
-          memberId,
-          date: today,
-          weekStart,
-          timestamp: new Date().toISOString()
-        });
+      const messages = [];
+      if (checkedIn.length > 0) {
+        messages.push(`${checkedIn.length} member(s) checked in successfully`);
       }
+      if (alreadyCheckedIn.length > 0) {
+        messages.push(`${alreadyCheckedIn.length} were already checked in today`);
+      }
+      setSuccessMessage(messages.length ? messages.join('. ') + '!' : 'Check-in complete.');
 
-      setSuccessMessage(`${selectedMembers.length} member(s) checked in successfully!`);
       setSelectedMembers([]);
       await loadTodayAttendance();
       setTimeout(() => setSuccessMessage(''), 3000);
