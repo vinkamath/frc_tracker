@@ -23,10 +23,11 @@ const formatPhoneDisplay = (phone) => {
   return phone || '';
 };
 
-function AddMemberDialog({ open, onOpenChange, onSuccess, member: editMember }) {
+function AddMemberDialog({ open, onOpenChange, onSuccess, member: editMember, offerCheckInToday = false }) {
   const isEdit = !!editMember;
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [checkInForToday, setCheckInForToday] = useState(true);
 
   useEffect(() => {
     if (open) {
@@ -36,6 +37,7 @@ function AddMemberDialog({ open, onOpenChange, onSuccess, member: editMember }) 
       } else {
         setName('');
         setPhone('');
+        setCheckInForToday(true);
       }
     }
   }, [open, editMember]);
@@ -97,7 +99,7 @@ function AddMemberDialog({ open, onOpenChange, onSuccess, member: editMember }) 
         });
         resetForm();
         handleOpenChange(false);
-        onSuccess?.(docRef.id);
+        onSuccess?.(docRef.id, offerCheckInToday ? { checkInForToday } : undefined);
       }
     } catch (error) {
       console.error(isEdit ? 'Error updating member:' : 'Error adding member:', error);
@@ -138,6 +140,20 @@ function AddMemberDialog({ open, onOpenChange, onSuccess, member: editMember }) 
               placeholder="(555) 123-4567"
             />
           </div>
+          {offerCheckInToday && !isEdit && (
+            <div className="flex items-center gap-2">
+              <input
+                id="add-member-check-in-today"
+                type="checkbox"
+                checked={checkInForToday}
+                onChange={(e) => setCheckInForToday(e.target.checked)}
+                className="h-4 w-4 rounded border-input accent-primary"
+              />
+              <Label htmlFor="add-member-check-in-today" className="font-normal cursor-pointer">
+                Also check me in for today
+              </Label>
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="secondary" onClick={() => handleOpenChange(false)}>
               Cancel

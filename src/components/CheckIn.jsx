@@ -56,9 +56,24 @@ function CheckIn() {
     }
   };
 
-  const handleAddMemberSuccess = async (newMemberId) => {
+  const handleAddMemberSuccess = async (newMemberId, options) => {
     await loadMembers();
-    setSelectedMembers(prev => [...prev, newMemberId]);
+    if (options?.checkInForToday) {
+      try {
+        const functions = getFunctions(app);
+        const checkInFn = httpsCallable(functions, 'checkIn');
+        await checkInFn({ memberIds: [newMemberId] });
+        await loadTodayAttendance();
+        setSuccessMessage('Member added and checked in for today!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } catch (error) {
+        console.error('Error checking in new member:', error);
+        setSelectedMembers(prev => [...prev, newMemberId]);
+        alert('Member added, but check-in failed. Please select them and click Check In.');
+      }
+    } else {
+      setSelectedMembers(prev => [...prev, newMemberId]);
+    }
   };
 
   const toggleMember = (memberId) => {
@@ -201,6 +216,7 @@ function CheckIn() {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onSuccess={handleAddMemberSuccess}
+        offerCheckInToday
       />
 
       <p className="mt-4 text-center text-sm text-muted-foreground">
