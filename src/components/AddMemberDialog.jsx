@@ -23,7 +23,14 @@ const formatPhoneDisplay = (phone) => {
   return phone || '';
 };
 
-function AddMemberDialog({ open, onOpenChange, onSuccess, member: editMember, offerCheckInToday = false }) {
+function AddMemberDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+  member: editMember,
+  offerCheckInToday = false,
+  initialName = '',
+}) {
   const isEdit = !!editMember;
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -35,12 +42,12 @@ function AddMemberDialog({ open, onOpenChange, onSuccess, member: editMember, of
         setName(editMember.name || '');
         setPhone(editMember.phone ? formatPhoneDisplay(editMember.phone) : '');
       } else {
-        setName('');
+        setName(initialName.trim());
         setPhone('');
         setCheckInForToday(true);
       }
     }
-  }, [open, editMember]);
+  }, [open, editMember, initialName]);
 
   const resetForm = () => {
     setName('');
