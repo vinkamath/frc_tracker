@@ -35,6 +35,7 @@ function AddMemberDialog({
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [checkInForToday, setCheckInForToday] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -76,6 +77,7 @@ function AddMemberDialog({
       return;
     }
 
+    setSubmitting(true);
     try {
       const existingQuery = query(
         collection(db, 'members'),
@@ -111,6 +113,8 @@ function AddMemberDialog({
     } catch (error) {
       console.error(isEdit ? 'Error updating member:' : 'Error adding member:', error);
       alert(isEdit ? 'Error updating member. Please try again.' : 'Error adding member. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -165,7 +169,15 @@ function AddMemberDialog({
             <Button type="button" variant="secondary" onClick={() => handleOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">{isEdit ? 'Save Changes' : 'Add Member'}</Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting && (
+                <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+              {submitting ? (isEdit ? 'Saving...' : 'Adding...') : (isEdit ? 'Save Changes' : 'Add Member')}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

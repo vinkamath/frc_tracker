@@ -18,6 +18,8 @@ function CheckIn() {
   const [successMessage, setSuccessMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [checkingInMembers, setCheckingInMembers] = useState(new Set());
 
   useEffect(() => {
     loadMembers();
@@ -59,6 +61,7 @@ function CheckIn() {
   const handleAddMemberSuccess = async (newMemberId, options) => {
     await loadMembers();
     if (options?.checkInForToday) {
+      setCheckingInMembers(new Set([newMemberId]));
       try {
         const functions = getFunctions(app);
         const checkInFn = httpsCallable(functions, 'checkIn');
@@ -70,6 +73,8 @@ function CheckIn() {
         console.error('Error checking in new member:', error);
         setSelectedMembers(prev => [...prev, newMemberId]);
         alert('Member added, but check-in failed. Please select them and click Check In.');
+      } finally {
+        setCheckingInMembers(new Set());
       }
     } else {
       setSelectedMembers(prev => [...prev, newMemberId]);
@@ -91,6 +96,8 @@ function CheckIn() {
       return;
     }
 
+    setCheckingIn(true);
+    setCheckingInMembers(new Set(selectedMembers));
     try {
       const functions = getFunctions(app);
       const checkInFn = httpsCallable(functions, 'checkIn');
@@ -112,6 +119,9 @@ function CheckIn() {
     } catch (error) {
       console.error('Error checking in:', error);
       alert('Error checking in. Please try again.');
+    } finally {
+      setCheckingIn(false);
+      setCheckingInMembers(new Set());
     }
   };
 
@@ -176,14 +186,23 @@ function CheckIn() {
                         "cursor-pointer rounded-lg border-2 p-4 text-center transition-all",
                         "hover:border-primary/50 hover:shadow-md",
                         selectedMembers.includes(member.id) && "border-primary bg-primary/10",
-                        checkedInToday.has(member.id) && "cursor-default border-muted bg-muted/50 opacity-70"
+                        checkedInToday.has(member.id) && "cursor-default border-muted bg-muted/50 opacity-70",
+                        checkingInMembers.has(member.id) && "pointer-events-none border-primary/50 bg-primary/5"
                       )}
                       onClick={() => toggleMember(member.id)}
                     >
                       <div className="font-medium">{member.name}</div>
-                      {checkedInToday.has(member.id) && (
+                      {checkingInMembers.has(member.id) ? (
+                        <div className="mt-1 flex items-center justify-center gap-1.5 text-sm text-primary">
+                          <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Checking in...
+                        </div>
+                      ) : checkedInToday.has(member.id) ? (
                         <div className="mt-1 text-sm text-primary">✓ Checked in</div>
-                      )}
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -192,9 +211,15 @@ function CheckIn() {
               <div className="flex flex-wrap items-center gap-3 pt-4">
                 <Button
                   onClick={handleCheckIn}
-                  disabled={selectedMembers.length === 0}
+                  disabled={selectedMembers.length === 0 || checkingIn}
                 >
-                  Check In ({selectedMembers.length})
+                  {checkingIn && (
+                    <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  )}
+                  {checkingIn ? 'Checking In...' : `Check In (${selectedMembers.length})`}
                 </Button>
                 {selectedMembers.length > 0 && (
                   <Button variant="secondary" onClick={() => setSelectedMembers([])}>
