@@ -94,16 +94,19 @@ function Members() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="py-12 text-center text-muted-foreground">Loading members...</div>
+        <div className="py-16 text-center font-medium text-muted-foreground">Loading members…</div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle>Members</CardTitle>
+    <div className="motion-safe:fade-up mx-auto max-w-4xl px-4 py-8 sm:py-10">
+      <Card className="border-primary/10 shadow-md">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-2 sm:items-end">
+          <div className="space-y-1">
+            <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-primary">Roster</p>
+            <CardTitle className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Members</CardTitle>
+          </div>
           <Button onClick={() => { setEditMember(null); setShowAddModal(true); }}>Add Member</Button>
         </CardHeader>
         <CardContent>

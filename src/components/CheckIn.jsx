@@ -118,7 +118,7 @@ function CheckIn() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="py-12 text-center text-muted-foreground">Loading members...</div>
+        <div className="py-16 text-center font-medium text-muted-foreground">Loading members…</div>
       </div>
     );
   }
@@ -128,12 +128,18 @@ function CheckIn() {
   );
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Who came to the run today?</CardTitle>
+    <div className="motion-safe:fade-up mx-auto max-w-4xl px-4 py-8 sm:py-10">
+      <Card className="overflow-hidden border-2 border-primary/15 shadow-[0_20px_50px_-24px_color-mix(in_oklch,var(--foreground)_25%,transparent)]">
+        <CardHeader className="relative space-y-3 border-b border-primary/10 bg-gradient-to-br from-primary/[0.12] via-background to-background pb-8 pt-8 sm:pb-10 sm:pt-10">
+          <p className="text-[0.65rem] font-bold uppercase tracking-[0.22em] text-primary">Today&apos;s run</p>
+          <CardTitle className="font-display max-w-[22ch] text-balance text-2xl font-bold leading-[1.15] tracking-tight sm:text-4xl">
+            Who came to the run today?
+          </CardTitle>
+          <p className="max-w-prose text-sm text-muted-foreground sm:text-base">
+            Tap your name, then check in — built for a phone passed around at the meetup.
+          </p>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 pt-8">
           {successMessage && (
             <Alert className="border-primary/50 bg-primary/10 text-primary">
               <AlertDescription>{successMessage}</AlertDescription>
@@ -168,29 +174,33 @@ function CheckIn() {
                   <Button onClick={() => setShowAddModal(true)}>Add Member</Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] sm:gap-4">
                   {filteredMembers.map(member => (
                     <div
                       key={member.id}
                       className={cn(
-                        "cursor-pointer rounded-lg border-2 p-4 text-center transition-all",
-                        "hover:border-primary/50 hover:shadow-md",
-                        selectedMembers.includes(member.id) && "border-primary bg-primary/10",
-                        checkedInToday.has(member.id) && "cursor-default border-muted bg-muted/50 opacity-70"
+                        "min-h-[3.25rem] cursor-pointer rounded-2xl border-2 p-4 text-center transition-[border-color,box-shadow,background-color,transform] duration-200 ease-out",
+                        "hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-md",
+                        selectedMembers.includes(member.id) &&
+                          "border-primary bg-primary/10 shadow-sm ring-2 ring-primary/25 ring-offset-2 ring-offset-background",
+                        checkedInToday.has(member.id) &&
+                          "cursor-default border-muted bg-muted/50 opacity-75 hover:translate-y-0 hover:shadow-none"
                       )}
                       onClick={() => toggleMember(member.id)}
                     >
-                      <div className="font-medium">{member.name}</div>
+                      <div className="font-semibold leading-snug">{member.name}</div>
                       {checkedInToday.has(member.id) && (
-                        <div className="mt-1 text-sm text-primary">✓ Checked in</div>
+                        <div className="mt-1.5 text-xs font-medium uppercase tracking-wide text-primary">Checked in</div>
                       )}
                     </div>
                   ))}
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-3 pt-4">
+              <div className="flex flex-wrap items-center gap-3 border-t border-border/80 pt-6">
                 <Button
+                  size="lg"
+                  className="min-h-11 min-w-[10rem] px-8 font-semibold shadow-sm"
                   onClick={handleCheckIn}
                   disabled={selectedMembers.length === 0}
                 >
@@ -220,7 +230,7 @@ function CheckIn() {
         initialName={searchQuery}
       />
 
-      <p className="mt-4 text-center text-sm text-muted-foreground">
+      <p className="mt-8 text-center font-display text-lg font-semibold tracking-tight text-foreground/85">
         {format(new Date(), 'EEEE, MMMM d, yyyy')}
       </p>
     </div>

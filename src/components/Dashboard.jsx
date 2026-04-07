@@ -12,20 +12,16 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-function StatCard({ title, value, variant = 'default' }) {
-  const variants = {
-    default: 'border-primary/20 bg-primary/5',
-    green: 'border-primary/30 bg-primary/10',
-    blue: 'border-primary/20 bg-primary/5',
-    orange: 'border-primary/25 bg-primary/8',
-  };
+function SideStat({ label, value, emphasize }) {
   return (
-    <Card className={variants[variant]}>
-      <CardContent className="pt-6">
-        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <p className="mt-1 text-3xl font-bold">{value}</p>
-      </CardContent>
-    </Card>
+    <div
+      className={`flex items-baseline justify-between gap-4 border-l-[3px] py-2 pl-4 ${
+        emphasize ? 'border-primary bg-primary/[0.06]' : 'border-primary/25'
+      }`}
+    >
+      <span className="text-sm font-medium text-muted-foreground">{label}</span>
+      <span className="font-display text-2xl font-bold tabular-nums text-foreground">{value}</span>
+    </div>
   );
 }
 
@@ -100,7 +96,7 @@ function Dashboard() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="py-12 text-center text-muted-foreground">Loading dashboard...</div>
+        <div className="py-16 text-center font-medium text-muted-foreground">Loading dashboard…</div>
       </div>
     );
   }
@@ -111,24 +107,43 @@ function Dashboard() {
     : 0;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Weekly Dashboard</CardTitle>
+    <div className="motion-safe:fade-up mx-auto max-w-4xl px-4 py-8 sm:py-10">
+      <Card className="overflow-hidden border-2 border-primary/12 shadow-[0_24px_60px_-28px_color-mix(in_oklch,var(--foreground)_22%,transparent)]">
+        <CardHeader className="border-b border-primary/10 bg-gradient-to-r from-primary/[0.08] via-transparent to-transparent pb-6">
+          <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-primary">Pulse of the club</p>
+          <CardTitle className="font-display pt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+            Weekly dashboard
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard title="This Week's Attendance" value={currentWeek.totalAttendance} variant="blue" />
-            <StatCard title="New Members This Week" value={currentWeek.newMembers} variant="green" />
-            <StatCard title="Returning Members" value={currentWeek.returningMembers} variant="orange" />
-            <StatCard title="Average Weekly Attendance" value={avgAttendance} />
+        <CardContent className="pt-8">
+          <div className="grid gap-8 lg:grid-cols-5 lg:gap-10 lg:items-stretch">
+            <div className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/15 via-primary/[0.07] to-background p-6 sm:p-8 lg:col-span-3">
+              <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" aria-hidden />
+              <div>
+                <p className="text-sm font-semibold text-primary">This week</p>
+                <p className="mt-1 text-sm text-muted-foreground">Total runners checked in for the current week.</p>
+              </div>
+              <p
+                className="mt-6 font-display text-6xl font-bold leading-none tracking-tight text-primary sm:text-7xl"
+                aria-live="polite"
+              >
+                {currentWeek.totalAttendance}
+              </p>
+              <p className="mt-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">attendance</p>
+            </div>
+            <div className="flex flex-col justify-center gap-1 lg:col-span-2">
+              <SideStat label="New members this week" value={currentWeek.newMembers} emphasize />
+              <SideStat label="Returning runners" value={currentWeek.returningMembers} />
+              <SideStat label="Avg per week (all time)" value={avgAttendance} />
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Weekly Trends</CardTitle>
+      <Card className="mt-8 border-primary/10 shadow-md">
+        <CardHeader className="pb-2">
+          <CardTitle className="font-display text-xl font-bold tracking-tight">Weekly trends</CardTitle>
+          <p className="text-sm text-muted-foreground">Recent weeks, newest first.</p>
         </CardHeader>
         <CardContent>
           {weeklyStats.length === 0 ? (

@@ -4,13 +4,17 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Teal-tinted page wash — harmonizes with primary, not generic gray */
+  --surface-wash-a: oklch(0.94 0.035 166);
+  --surface-wash-b: oklch(0.97 0.012 247);
   --background: oklch(0.985 0.002 247.858);
   --foreground: oklch(0.205 0.02 256.788);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.205 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.205 0 0);
-  --primary: oklch(0.556 0.103 166.429);
+  /* Slightly more saturated teal for confident accents (still AA on white UI) */
+  --primary: oklch(0.52 0.12 166.429);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0.005 247.896);
   --secondary-foreground: oklch(0.205 0 0);
@@ -22,8 +26,8 @@
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.922 0.01 256.788);
   --input: oklch(0.922 0.01 256.788);
-  --ring: oklch(0.556 0.103 166.429);
-  --chart-1: oklch(0.556 0.103 166.429);
+  --ring: oklch(0.52 0.12 166.429);
+  --chart-1: oklch(0.52 0.12 166.429);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
@@ -40,6 +44,8 @@
 }
 
 .dark {
+  --surface-wash-a: oklch(0.22 0.04 166);
+  --surface-wash-b: oklch(0.18 0.02 250);
   --background: oklch(0.145 0.02 256.788);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0.02 256.788);
@@ -124,5 +130,43 @@
   }
   #root {
     min-height: 100vh;
+  }
+}
+
+/* Soft mesh behind app content — teal + cool slate, chapter-rebrandable via tokens */
+.app-shell {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse 100% 70% at 100% 0%, color-mix(in oklch, var(--primary) 18%, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 0% 100%, color-mix(in oklch, var(--surface-wash-b) 80%, var(--primary)) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, color-mix(in oklch, var(--surface-wash-a) 40%, transparent) 0%, transparent 40%);
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .motion-safe\:fade-up {
+    animation: app-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes app-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe\:fade-up {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

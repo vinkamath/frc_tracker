@@ -18,8 +18,8 @@ function NavLink({ to, children, onClick }) {
     <Link
       to={to}
       onClick={onClick}
-      className={`font-medium transition-colors hover:opacity-90 ${
-        isActive ? 'border-b-2 border-white pb-1' : ''
+      className={`relative pb-0.5 text-sm font-medium transition-[opacity,font-weight] duration-200 ease-out hover:opacity-90 ${
+        isActive ? 'font-semibold after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-primary' : ''
       }`}
     >
       {children}
@@ -54,15 +54,17 @@ function Nav() {
   );
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-foreground text-background shadow-sm">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-4">
-          <img src={logo} alt="FRC Mumbai" className="h-9 w-auto sm:h-10" />
-          <h1 className="text-base font-semibold sm:text-lg">FRC Mumbai</h1>
+    <nav className="sticky top-0 z-50 w-full border-b border-background/10 bg-foreground text-background shadow-[0_1px_0_color-mix(in_oklch,var(--primary)_35%,transparent)]">
+      <div className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <img src={logo} alt="FRC Mumbai" className="h-9 w-auto shrink-0 sm:h-10" />
+          <h1 className="font-display truncate text-lg font-bold tracking-tight sm:text-xl">
+            FRC Mumbai
+          </h1>
         </div>
 
         {/* Desktop nav */}
-        <ul className="hidden items-center gap-6 sm:flex">
+        <ul className="hidden items-center gap-7 sm:flex">
           {navLinks}
         </ul>
 
@@ -94,7 +96,9 @@ function LayoutWithNav() {
   return (
     <>
       <Nav />
-      <Outlet />
+      <main className="app-shell min-h-[calc(100vh-4.25rem)] pb-12">
+        <Outlet />
+      </main>
     </>
   );
 }

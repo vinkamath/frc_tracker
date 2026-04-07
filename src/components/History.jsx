@@ -100,7 +100,7 @@ function History() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="py-12 text-center text-muted-foreground">Loading attendance history...</div>
+        <div className="py-16 text-center font-medium text-muted-foreground">Loading attendance history…</div>
       </div>
     );
   }
@@ -109,10 +109,15 @@ function History() {
   const groupedData = groupByDate(filteredData);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <Card>
-        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Attendance History</CardTitle>
+    <div className="motion-safe:fade-up mx-auto max-w-4xl px-4 py-8 sm:py-10">
+      <Card className="border-primary/10 shadow-md">
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-primary">Log</p>
+            <CardTitle className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+              Attendance history
+            </CardTitle>
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             <select
               value={filter}
@@ -136,7 +141,7 @@ function History() {
             <div className="space-y-8">
               {groupedData.map(({ date, records }) => (
                 <div key={date}>
-                  <h3 className="mb-4 text-base font-medium">
+                  <h3 className="mb-4 font-display text-lg font-bold tracking-tight text-foreground sm:text-xl">
                     {format(new Date(date), 'EEEE, MMMM d, yyyy')}
                     <span className="ml-3 text-sm font-normal text-muted-foreground">
                       ({records.length} {records.length === 1 ? 'member' : 'members'})
