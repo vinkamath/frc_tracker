@@ -41,6 +41,9 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Motion — ease-out only, no bounce */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .dark {
@@ -148,7 +151,34 @@
   }
 
   .motion-safe\:fade-up {
-    animation: app-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: app-fade-up 0.55s var(--ease-out-quint) both;
+  }
+
+  /* Route / shell entrance — slightly faster than hero fade */
+  .motion-safe\:page-enter {
+    animation: app-page-enter 0.45s var(--ease-out-quint) both;
+  }
+
+  /* Success / inline feedback */
+  .motion-safe\:alert-in {
+    animation: app-alert-in 0.4s var(--ease-out-quint) both;
+  }
+
+  /* Primary tap feedback — transform only */
+  .motion-safe\:press {
+    transition:
+      transform 0.15s var(--ease-out-quint),
+      box-shadow 0.2s var(--ease-out-quart),
+      background-color 0.2s var(--ease-out-quart),
+      color 0.2s var(--ease-out-quart),
+      border-color 0.2s var(--ease-out-quart),
+      opacity 0.2s var(--ease-out-quart);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe\:press:active:not(:disabled) {
+    transform: scale(0.98);
   }
 }
 
@@ -163,10 +193,38 @@
   }
 }
 
+@keyframes app-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes app-alert-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .motion-safe\:fade-up {
+  .motion-safe\:fade-up,
+  .motion-safe\:page-enter,
+  .motion-safe\:alert-in {
     animation: none !important;
     opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .motion-safe\:press:active:not(:disabled) {
     transform: none !important;
   }
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -18,9 +19,10 @@ function NavLink({ to, children, onClick }) {
     <Link
       to={to}
       onClick={onClick}
-      className={`relative pb-0.5 text-sm font-medium transition-[opacity,font-weight] duration-200 ease-out hover:opacity-90 ${
-        isActive ? 'font-semibold after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-primary' : ''
-      }`}
+      className={cn(
+        'relative pb-0.5 text-sm font-medium transition-opacity duration-200 ease-out after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:rounded-full after:bg-primary after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.22,1,0.36,1)] hover:opacity-90 motion-reduce:after:transition-none',
+        isActive ? 'font-semibold after:scale-x-100' : 'after:scale-x-0'
+      )}
     >
       {children}
     </Link>
@@ -80,23 +82,30 @@ function Nav() {
         </Button>
       </div>
 
-      {/* Mobile dropdown menu */}
-      {menuOpen && (
-        <div className="border-t border-white/20 sm:hidden">
-          <ul className="flex flex-col gap-2 px-4 py-4">
-            {navLinks}
-          </ul>
+      {/* Mobile menu — grid rows avoids animating raw height */}
+      <div
+        className={cn(
+          'grid overflow-hidden border-t border-white/20 transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none sm:hidden',
+          menuOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <ul className="flex flex-col gap-2 px-4 py-4">{navLinks}</ul>
         </div>
-      )}
+      </div>
     </nav>
   );
 }
 
 function LayoutWithNav() {
+  const location = useLocation();
   return (
     <>
       <Nav />
-      <main className="app-shell min-h-[calc(100vh-4.25rem)] pb-12">
+      <main
+        key={location.pathname}
+        className="app-shell min-h-[calc(100vh-4.25rem)] pb-12 motion-safe:page-enter"
+      >
         <Outlet />
       </main>
     </>

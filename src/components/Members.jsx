@@ -94,13 +94,15 @@ function Members() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="py-16 text-center font-medium text-muted-foreground">Loading members…</div>
+        <div className="py-16 text-center font-medium text-muted-foreground motion-safe:animate-pulse motion-reduce:animate-none">
+          Loading members…
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="motion-safe:fade-up mx-auto max-w-4xl px-4 py-8 sm:py-10">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
       <Card className="border-primary/10 shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-2 sm:items-end">
           <div className="space-y-1">

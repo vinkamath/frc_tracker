@@ -96,7 +96,9 @@ function Dashboard() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="py-16 text-center font-medium text-muted-foreground">Loading dashboard…</div>
+        <div className="py-16 text-center font-medium text-muted-foreground motion-safe:animate-pulse motion-reduce:animate-none">
+          Loading dashboard…
+        </div>
       </div>
     );
   }
@@ -107,7 +109,7 @@ function Dashboard() {
     : 0;
 
   return (
-    <div className="motion-safe:fade-up mx-auto max-w-4xl px-4 py-8 sm:py-10">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
       <Card className="overflow-hidden border-2 border-primary/12 shadow-[0_24px_60px_-28px_color-mix(in_oklch,var(--foreground)_22%,transparent)]">
         <CardHeader className="border-b border-primary/10 bg-gradient-to-r from-primary/[0.08] via-transparent to-transparent pb-6">
           <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-primary">Pulse of the club</p>

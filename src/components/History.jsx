@@ -100,7 +100,9 @@ function History() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="py-16 text-center font-medium text-muted-foreground">Loading attendance history…</div>
+        <div className="py-16 text-center font-medium text-muted-foreground motion-safe:animate-pulse motion-reduce:animate-none">
+          Loading attendance history…
+        </div>
       </div>
     );
   }
@@ -109,7 +111,7 @@ function History() {
   const groupedData = groupByDate(filteredData);
 
   return (
-    <div className="motion-safe:fade-up mx-auto max-w-4xl px-4 py-8 sm:py-10">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
       <Card className="border-primary/10 shadow-md">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">

@@ -18,6 +18,7 @@ function CheckIn() {
   const [successMessage, setSuccessMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [checkInPending, setCheckInPending] = useState(false);
 
   useEffect(() => {
     loadMembers();
@@ -91,6 +92,7 @@ function CheckIn() {
       return;
     }
 
+    setCheckInPending(true);
     try {
       const functions = getFunctions(app);
       const checkInFn = httpsCallable(functions, 'checkIn');
@@ -112,13 +114,17 @@ function CheckIn() {
     } catch (error) {
       console.error('Error checking in:', error);
       alert('Error checking in. Please try again.');
+    } finally {
+      setCheckInPending(false);
     }
   };
 
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="py-16 text-center font-medium text-muted-foreground">Loading members…</div>
+        <div className="py-16 text-center font-medium text-muted-foreground motion-safe:animate-pulse motion-reduce:animate-none">
+          Loading members…
+        </div>
       </div>
     );
   }
@@ -128,7 +134,7 @@ function CheckIn() {
   );
 
   return (
-    <div className="motion-safe:fade-up mx-auto max-w-4xl px-4 py-8 sm:py-10">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
       <Card className="overflow-hidden border-2 border-primary/15 shadow-[0_20px_50px_-24px_color-mix(in_oklch,var(--foreground)_25%,transparent)]">
         <CardHeader className="relative space-y-3 border-b border-primary/10 bg-gradient-to-br from-primary/[0.12] via-background to-background pb-8 pt-8 sm:pb-10 sm:pt-10">
           <p className="text-[0.65rem] font-bold uppercase tracking-[0.22em] text-primary">Today&apos;s run</p>
@@ -141,7 +147,7 @@ function CheckIn() {
         </CardHeader>
         <CardContent className="space-y-6 pt-8">
           {successMessage && (
-            <Alert className="border-primary/50 bg-primary/10 text-primary">
+            <Alert className="motion-safe:alert-in border-primary/50 bg-primary/10 text-primary">
               <AlertDescription>{successMessage}</AlertDescription>
             </Alert>
           )}
@@ -180,7 +186,7 @@ function CheckIn() {
                       key={member.id}
                       className={cn(
                         "min-h-[3.25rem] cursor-pointer rounded-2xl border-2 p-4 text-center transition-[border-color,box-shadow,background-color,transform] duration-200 ease-out",
-                        "hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-md",
+                        "hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-md motion-reduce:hover:translate-y-0",
                         selectedMembers.includes(member.id) &&
                           "border-primary bg-primary/10 shadow-sm ring-2 ring-primary/25 ring-offset-2 ring-offset-background",
                         checkedInToday.has(member.id) &&
@@ -202,9 +208,10 @@ function CheckIn() {
                   size="lg"
                   className="min-h-11 min-w-[10rem] px-8 font-semibold shadow-sm"
                   onClick={handleCheckIn}
-                  disabled={selectedMembers.length === 0}
+                  disabled={checkInPending || selectedMembers.length === 0}
+                  aria-busy={checkInPending}
                 >
-                  Check In ({selectedMembers.length})
+                  {checkInPending ? 'Checking in…' : `Check In (${selectedMembers.length})`}
                 </Button>
                 {selectedMembers.length > 0 && (
                   <Button variant="secondary" onClick={() => setSelectedMembers([])}>
