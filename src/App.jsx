@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -18,9 +19,10 @@ function NavLink({ to, children, onClick }) {
     <Link
       to={to}
       onClick={onClick}
-      className={`font-medium transition-colors hover:opacity-90 ${
-        isActive ? 'border-b-2 border-white pb-1' : ''
-      }`}
+      className={cn(
+        'relative pb-0.5 text-sm font-medium transition-opacity duration-200 ease-out after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:rounded-full after:bg-primary after:transition-transform after:duration-300 after:ease-[cubic-bezier(0.22,1,0.36,1)] hover:opacity-90 motion-reduce:after:transition-none',
+        isActive ? 'font-semibold after:scale-x-100' : 'after:scale-x-0'
+      )}
     >
       {children}
     </Link>
@@ -54,15 +56,17 @@ function Nav() {
   );
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-foreground text-background shadow-sm">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-4">
-          <img src={logo} alt="FRC Mumbai" className="h-9 w-auto sm:h-10" />
-          <h1 className="text-base font-semibold sm:text-lg">FRC Mumbai</h1>
+    <nav className="sticky top-0 z-50 w-full border-b border-background/10 bg-foreground text-background shadow-[0_1px_0_color-mix(in_oklch,var(--primary)_35%,transparent)]">
+      <div className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <img src={logo} alt="FRC Mumbai" className="h-9 w-auto shrink-0 sm:h-10" />
+          <h1 className="font-display truncate text-lg font-bold tracking-tight sm:text-xl">
+            FRC Mumbai
+          </h1>
         </div>
 
         {/* Desktop nav */}
-        <ul className="hidden items-center gap-6 sm:flex">
+        <ul className="hidden items-center gap-7 sm:flex">
           {navLinks}
         </ul>
 
@@ -78,23 +82,32 @@ function Nav() {
         </Button>
       </div>
 
-      {/* Mobile dropdown menu */}
-      {menuOpen && (
-        <div className="border-t border-white/20 sm:hidden">
-          <ul className="flex flex-col gap-2 px-4 py-4">
-            {navLinks}
-          </ul>
+      {/* Mobile menu — grid rows avoids animating raw height */}
+      <div
+        className={cn(
+          'grid overflow-hidden border-t border-white/20 transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none sm:hidden',
+          menuOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <ul className="flex flex-col gap-2 px-4 py-4">{navLinks}</ul>
         </div>
-      )}
+      </div>
     </nav>
   );
 }
 
 function LayoutWithNav() {
+  const location = useLocation();
   return (
     <>
       <Nav />
-      <Outlet />
+      <main
+        key={location.pathname}
+        className="app-shell min-h-[calc(100vh-4.25rem)] pb-12 motion-safe:page-enter"
+      >
+        <Outlet />
+      </main>
     </>
   );
 }

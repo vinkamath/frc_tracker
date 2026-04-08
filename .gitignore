@@ -44,3 +44,10 @@ ui-debug.log
 # Mock Data
 populate-mock-data.js
 package.json
+
+.agents/
+.claude/
+
+# Impeccable
+skills-lock.json
+.impeccable.md

@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
-import { format } from 'date-fns';
+import { collection, getDocs, deleteDoc, doc, setDoc } from 'firebase/firestore';
+import { format, startOfWeek } from 'date-fns';
+import { Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Table,
   TableBody,
@@ -17,6 +19,18 @@ function History() {
   const [attendanceData, setAttendanceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [pendingUndo, setPendingUndo] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const undoTimeoutRef = useRef(null);
+
+  const clearUndoTimer = () => {
+    if (undoTimeoutRef.current) {
+      clearTimeout(undoTimeoutRef.current);
+      undoTimeoutRef.current = null;
+    }
+  };
+
+  useEffect(() => () => clearUndoTimer(), []);
 
   useEffect(() => {
     loadAttendanceHistory();
@@ -31,13 +45,18 @@ function History() {
       });
 
       const attendanceSnapshot = await getDocs(collection(db, 'attendance'));
-      const attendance = attendanceSnapshot.docs.map(doc => {
-        const data = doc.data();
+      const attendance = attendanceSnapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+        const dateStr = data.date;
+        const weekStart =
+          data.weekStart ||
+          format(startOfWeek(new Date(`${dateStr}T12:00:00`)), 'yyyy-MM-dd');
         return {
-          id: doc.id,
+          id: docSnap.id,
           memberName: membersMap.get(data.memberId) || 'Unknown',
           memberId: data.memberId,
-          date: data.date,
+          date: dateStr,
+          weekStart,
           timestamp: data.timestamp
         };
       });
@@ -48,6 +67,54 @@ function History() {
     } catch (error) {
       console.error('Error loading attendance history:', error);
       setLoading(false);
+    }
+  };
+
+  const handleRemoveCheckIn = async (record) => {
+    const dateLabel = format(new Date(record.date), 'MMM d, yyyy');
+    if (
+      !confirm(
+        `Remove check-in for ${record.memberName} on ${dateLabel} at ${format(new Date(record.timestamp), 'h:mm a')}?`
+      )
+    ) {
+      return;
+    }
+
+    clearUndoTimer();
+    setPendingUndo(null);
+    setDeletingId(record.id);
+    try {
+      await deleteDoc(doc(db, 'attendance', record.id));
+      setAttendanceData(prev => prev.filter(r => r.id !== record.id));
+      setPendingUndo(record);
+      undoTimeoutRef.current = setTimeout(() => {
+        setPendingUndo(null);
+        undoTimeoutRef.current = null;
+      }, 10000);
+    } catch (error) {
+      console.error('Error removing check-in:', error);
+      alert('Could not remove check-in. Please try again.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleUndoRemove = async () => {
+    if (!pendingUndo) return;
+    clearUndoTimer();
+    const snapshot = pendingUndo;
+    setPendingUndo(null);
+    try {
+      await setDoc(doc(db, 'attendance', snapshot.id), {
+        memberId: snapshot.memberId,
+        date: snapshot.date,
+        weekStart: snapshot.weekStart,
+        timestamp: snapshot.timestamp
+      });
+      await loadAttendanceHistory();
+    } catch (error) {
+      console.error('Error restoring check-in:', error);
+      alert('Could not undo. The check-in was removed; add it again from Check In if needed.');
     }
   };
 
@@ -100,7 +167,9 @@ function History() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="py-12 text-center text-muted-foreground">Loading attendance history...</div>
+        <div className="py-16 text-center font-medium text-muted-foreground motion-safe:animate-pulse motion-reduce:animate-none">
+          Loading attendance history…
+        </div>
       </div>
     );
   }
@@ -109,10 +178,15 @@ function History() {
   const groupedData = groupByDate(filteredData);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <Card>
-        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Attendance History</CardTitle>
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
+      <Card className="border-primary/10 shadow-md">
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-primary">Log</p>
+            <CardTitle className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+              Attendance history
+            </CardTitle>
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             <select
               value={filter}
@@ -126,7 +200,28 @@ function History() {
             <Button onClick={exportToCSV}>Export to CSV</Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {pendingUndo && (
+            <Alert className="flex flex-col gap-3 border-primary/20 bg-primary/5 sm:flex-row sm:items-center sm:justify-between">
+              <AlertDescription className="text-foreground">
+                Check-in removed for{' '}
+                <span className="font-medium">{pendingUndo.memberName}</span> (
+                {format(new Date(pendingUndo.timestamp), 'h:mm a')}
+                ).
+              </AlertDescription>
+              <div className="flex shrink-0 gap-2 sm:justify-end">
+                <Button type="button" size="sm" variant="outline" onClick={() => {
+                  clearUndoTimer();
+                  setPendingUndo(null);
+                }}>
+                  Dismiss
+                </Button>
+                <Button type="button" size="sm" onClick={handleUndoRemove}>
+                  Undo
+                </Button>
+              </div>
+            </Alert>
+          )}
           {filteredData.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
               <h3 className="mb-2 font-medium text-foreground">No attendance records</h3>
@@ -136,7 +231,7 @@ function History() {
             <div className="space-y-8">
               {groupedData.map(({ date, records }) => (
                 <div key={date}>
-                  <h3 className="mb-4 text-base font-medium">
+                  <h3 className="mb-4 font-display text-lg font-bold tracking-tight text-foreground sm:text-xl">
                     {format(new Date(date), 'EEEE, MMMM d, yyyy')}
                     <span className="ml-3 text-sm font-normal text-muted-foreground">
                       ({records.length} {records.length === 1 ? 'member' : 'members'})
@@ -147,6 +242,7 @@ function History() {
                       <TableRow>
                         <TableHead>Member Name</TableHead>
                         <TableHead>Check-in Time</TableHead>
+                        <TableHead className="w-[1%] text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -154,6 +250,19 @@ function History() {
                         <TableRow key={record.id}>
                           <TableCell className="font-medium">{record.memberName}</TableCell>
                           <TableCell>{format(new Date(record.timestamp), 'h:mm a')}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="text-muted-foreground hover:text-destructive"
+                              disabled={deletingId === record.id}
+                              aria-label={`Remove check-in for ${record.memberName}`}
+                              onClick={() => handleRemoveCheckIn(record)}
+                            >
+                              <Trash2 />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

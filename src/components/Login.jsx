@@ -51,15 +51,15 @@ export default function Login({ redirectTo = '/' }) {
   };
 
   return (
-    <div className="mx-auto max-w-md px-4 pt-12">
-      <Card>
-        <CardHeader>
-          <CardTitle>Sign In</CardTitle>
-          <CardDescription>
-            Enter your email and password to access the app.
+    <div className="app-shell flex min-h-screen flex-col items-center px-4 pb-16 pt-16 sm:pt-24">
+      <Card className="motion-safe:fade-up w-full max-w-md border-2 border-primary/15 shadow-[0_28px_70px_-32px_color-mix(in_oklch,var(--foreground)_35%,transparent)]">
+        <CardHeader className="space-y-2 border-b border-primary/10 bg-gradient-to-br from-primary/[0.09] via-transparent to-transparent pb-8 pt-8">
+          <CardTitle className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Sign in</CardTitle>
+          <CardDescription className="text-base">
+            Organizer access — email and password.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <Alert variant="destructive" role="alert">
