@@ -60,7 +60,6 @@ function CheckIn() {
   const handleAddMemberSuccess = async (newMemberId, options) => {
     await loadMembers();
     if (options?.checkInForToday) {
-      setCheckingInMembers(new Set([newMemberId]));
       try {
         const functions = getFunctions(app);
         const checkInFn = httpsCallable(functions, 'checkIn');
@@ -72,8 +71,6 @@ function CheckIn() {
         console.error('Error checking in new member:', error);
         setSelectedMembers(prev => [...prev, newMemberId]);
         alert('Member added, but check-in failed. Please select them and click Check In.');
-      } finally {
-        setCheckingInMembers(new Set());
       }
     } else {
       setSelectedMembers(prev => [...prev, newMemberId]);
