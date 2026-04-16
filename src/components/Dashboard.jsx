@@ -27,6 +27,7 @@ function SideStat({ label, value, emphasize }) {
 
 function Dashboard() {
   const [weeklyStats, setWeeklyStats] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -85,7 +86,22 @@ function Dashboard() {
         })
         .sort((a, b) => b.weekStart.localeCompare(a.weekStart));
 
+      const memberCounts = new Map();
+      attendanceSnapshot.docs.forEach(doc => {
+        const { memberId } = doc.data();
+        memberCounts.set(memberId, (memberCounts.get(memberId) || 0) + 1);
+      });
+
+      const top5 = Array.from(memberCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([memberId, count]) => ({
+          name: membersMap.get(memberId)?.name ?? 'Unknown',
+          count,
+        }));
+
       setWeeklyStats(stats);
+      setLeaderboard(top5);
       setLoading(false);
     } catch (error) {
       console.error('Error loading weekly stats:', error);
@@ -174,6 +190,46 @@ function Dashboard() {
                 ))}
               </TableBody>
             </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="mt-8 border-primary/10 shadow-md">
+        <CardHeader className="pb-2">
+          <CardTitle className="font-display text-xl font-bold tracking-tight">Leaderboard</CardTitle>
+          <p className="text-sm text-muted-foreground">Top 5 members by all-time attendance.</p>
+        </CardHeader>
+        <CardContent>
+          {leaderboard.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">No data yet</div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {leaderboard.map((member, index) => (
+                <div
+                  key={member.name}
+                  className={`flex items-center gap-4 rounded-xl px-4 py-3 ${
+                    index === 0
+                      ? 'bg-primary/10 border border-primary/20'
+                      : 'bg-muted/40'
+                  }`}
+                >
+                  <span
+                    className={`font-display w-6 text-center text-lg font-bold tabular-nums ${
+                      index === 0 ? 'text-primary' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {index + 1}
+                  </span>
+                  <span className={`flex-1 font-medium ${index === 0 ? 'text-foreground' : 'text-foreground/80'}`}>
+                    {member.name}
+                  </span>
+                  <span className={`font-display text-xl font-bold tabular-nums ${index === 0 ? 'text-primary' : 'text-foreground'}`}>
+                    {member.count}
+                  </span>
+                  <span className="text-xs text-muted-foreground">check-ins</span>
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
