@@ -4,6 +4,12 @@ A mobile-friendly web app for tracking weekly run club attendance. Built for FRC
 
 **Originally built for FRC Mumbai.** Fork this repo to spin up your own chapter's attendance app.
 
+## Screenshots
+
+| Check-In | Dashboard | History | Add Member |
+|----------|-----------|---------|------------|
+| ![Check-in screen](docs/screenshots/check-in.png) | ![Weekly dashboard](docs/screenshots/dashboard.png) | ![Attendance history](docs/screenshots/history.png) | ![Add new member](docs/screenshots/add-member.png) |
+
 ## Features
 
 - **Quick Check-In** – Members select their name from a searchable list and tap to check in
