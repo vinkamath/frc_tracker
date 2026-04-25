@@ -6,9 +6,13 @@ A mobile-friendly web app for tracking weekly run club attendance. Built for FRC
 
 ## Screenshots
 
-| Check-In | Dashboard | History | Add Member |
-|----------|-----------|---------|------------|
-| ![Check-in screen](docs/screenshots/check-in.png) | ![Weekly dashboard](docs/screenshots/dashboard.png) | ![Attendance history](docs/screenshots/history.png) | ![Add new member](docs/screenshots/add-member.png) |
+| Check-In | Dashboard |
+|----------|-----------|
+| ![Check-in screen](docs/screenshots/check-in.png) | ![Weekly dashboard](docs/screenshots/dashboard.png) |
+
+| History | Add Member |
+|---------|------------|
+| ![Attendance history](docs/screenshots/history.png) | ![Add new member](docs/screenshots/add-member.png) |
 
 ## Features
 
